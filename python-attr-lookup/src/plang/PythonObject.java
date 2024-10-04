@@ -60,6 +60,14 @@ public class PythonObject {
         return mro;
     }
 
+    protected boolean hasAttribute(String attrName) {
+        return attrs.containsKey(attrName);
+    }
+
+    protected PythonObject getAttribute(String attrName) {
+        return attrs.get(attrName); // May return null
+    }
+
     /**
      * Returns the value of the attribute with the given name for this object.
      *
@@ -68,25 +76,20 @@ public class PythonObject {
      * @throws PythonAttributeException When there is no attribute on this object with that name.
      */
 
-    public final PythonObject get(String attrName) throws PythonAttributeException {
-        // get the attribute directly from this object
-        PythonObject value = attrs.get(attrName);
-        if (value != null) {
-            return value;
-        }
-    
-        // if not found, search through the MRO
-        for (PythonObject type : getMRO()) {
-            if (type instanceof PythonType) {
-                PythonType t = (PythonType) type;
-                if (t.attrs.containsKey(attrName)) {
-                    return t.attrs.get(attrName);
-                }
-            }
-        }
-    
-        throw new PythonAttributeException(this, attrName);
+public final PythonObject get(String attrName) throws PythonAttributeException {
+    if (hasAttribute(attrName)) {
+        return getAttribute(attrName);
     }
+
+    for (PythonObject obj : getMRO()) {
+        if (obj.hasAttribute(attrName)) {
+            return obj.getAttribute(attrName);
+        }
+    }
+
+    throw new PythonAttributeException(this, attrName);
+}
+
 
     /**
      * Add or changes the value of an attribute on this object. Note that it sets the value for
